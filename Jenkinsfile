@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         // Définir des variables d'environnement si nécessaire
-        GIT_BRANCH_DEV = 'dev'
+        GIT_BRANCH_DEV = 'dev'  // Cible de la fusion
     }
 
     stages {
@@ -24,7 +24,8 @@ pipeline {
                 script {
                     // Récupérer le nom de la branche actuelle
                     def branchName = env.BRANCH_NAME
-                    
+                    echo "Branch name: ${branchName}"
+
                     // Vérifier si la branche actuelle est dev1 ou dev2
                     if (branchName == 'dev1' || branchName == 'dev2') {
                         // Fusionner automatiquement la branche dev1 ou dev2 vers dev
