@@ -2,8 +2,12 @@ pipeline {
     agent any
 
     environment {
-        GITHUB_CREDENTIALS = 'GitHub-Token' 
+        GITHUB_CREDENTIALS = 'GitHub-Token'
         REPO_URL = 'https://github.com/warda102/DemoFrequenceSantec.git'
+    }
+
+    triggers {
+        githubPush()
     }
 
     stages {
@@ -30,13 +34,17 @@ pipeline {
                         git config user.name "jenkins-bot"
                         git config user.email "jenkins@localhost"
 
-                        # Récupération de la branche cible
+                        # Récupérer et configurer les branches
                         git fetch origin dev:dev
                         git checkout dev
-
-                        # Récupération de la branche source
                         git fetch origin dev1:dev1
-                        git merge dev1 --no-edit
+
+                        # Fusionner les branches et gérer les conflits
+                        git merge dev1 --no-edit || true
+                        git checkout --theirs -- Exemple.html || echo 'Conflit non résolu automatiquement'
+                        git checkout --theirs -- Jenkinsfile || echo 'Conflit non résolu automatiquement'
+                        git add Exemple.html Jenkinsfile
+                        git commit -m 'Résolution automatique des conflits'
                     """
                 }
             }
