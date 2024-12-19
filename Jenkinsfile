@@ -11,40 +11,25 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Merge to dev') {
             steps {
                 script {
-                    // Utilisation de GIT_BRANCH pour obtenir le nom de la branche
-                    def branchName = env.GIT_BRANCH.replaceAll('origin/', '')
-
-                    echo "Branch Name: ${branchName}"
-
-                    // Vérifier si la branche actuelle est dev1 ou dev2
-                    if (branchName == 'dev1' || branchName == 'dev2') {
-                        echo "Merging ${branchName} into dev"
-
-                        sh """
-                            git checkout dev
-                            git pull origin dev
-                            git merge ${branchName} || { echo 'Merge conflict detected!'; exit 1; }
-                        """
-
-                        // Vérifier s'il y a des changements à pousser
-                        def changes = sh(script: "git status --porcelain", returnStdout: true).trim()
-                        if (changes) {
-                            echo "Changes detected, pushing to dev..."
-                            sh "git push origin dev"
-                        } else {
-                            echo "No changes to push."
-                        }
+                    def currentBranch = sh(script: 'git symbolic-ref --short HEAD', returnStdout: true).trim()
+                    echo "Current Branch: ${currentBranch}"
+                    
+                    if (currentBranch == 'dev1') {
+                        echo "Merging dev1 into dev"
+                        sh 'git checkout dev'  // Passe à la branche dev
+                        sh 'git merge dev1'    // Fusionne dev1 dans dev
+                        
+                        // Vérifie si le merge a été effectué correctement
+                        sh 'git status'
+                        sh 'git log --oneline --graph'
+                        
+                        // Push les changements sur GitHub
+                        sh 'git push origin dev'
                     } else {
-                        echo "No merge needed for this branch: ${branchName}"
+                        echo "No merge needed for this branch: ${currentBranch}"
                     }
                 }
             }
