@@ -20,8 +20,10 @@ pipeline {
         stage('Merge to dev') {
             steps {
                 script {
-                    // Récupérer le nom de la branche actuelle en utilisant `git symbolic-ref`
-                    def branchName = sh(script: 'git symbolic-ref --short HEAD', returnStdout: true).trim()
+                    // Utilisation de GIT_BRANCH pour obtenir le nom de la branche
+                    def branchName = env.GIT_BRANCH.replaceAll('origin/', '')
+
+                    echo "Branch Name: ${branchName}"
 
                     // Vérifier si la branche actuelle est dev1 ou dev2
                     if (branchName == 'dev1' || branchName == 'dev2') {
