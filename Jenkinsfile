@@ -14,14 +14,19 @@ pipeline {
         stage('Merge to dev') {
             steps {
                 script {
-                    // Utiliser rev-parse pour obtenir la branche courante, même en état détaché
+                    // Utiliser rev-parse pour obtenir la branche courante
                     def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     echo "Current Branch: ${currentBranch}"
 
                     if (currentBranch == 'dev1') {
                         echo "Merging dev1 into dev"
+                        
+                        // Passe à la branche dev et récupère les dernières modifications
                         sh 'git checkout dev'  // Passe à la branche dev
-                        sh 'git merge dev1'    // Fusionne dev1 dans dev
+                        sh 'git pull origin dev'  // Assure que la branche dev est à jour avec le remote
+                        
+                        // Fusionne dev1 dans dev
+                        sh 'git merge dev1'    
 
                         // Vérifie si le merge a été effectué correctement
                         sh 'git status'
