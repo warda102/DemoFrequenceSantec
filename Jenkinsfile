@@ -1,8 +1,7 @@
 pipeline {
-    agent any  // Utiliser n'importe quel agent disponible
+    agent any
 
     triggers {
-        // Déclenche la pipeline lors de push sur dev1 ou dev2
         githubPush()
     }
 
@@ -14,25 +13,21 @@ pipeline {
         stage('Merge to dev') {
             steps {
                 script {
-                    // Utiliser rev-parse pour obtenir la branche courante
-                    def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    // Identifier la branche courante à partir de Jenkins
+                    def currentBranch = env.GIT_BRANCH.replaceFirst('origin/', '')
                     echo "Current Branch: ${currentBranch}"
 
-                    if (currentBranch == 'dev1') {
-                        echo "Merging dev1 into dev"
-                        
-                        // Passe à la branche dev et récupère les dernières modifications
-                        sh 'git checkout dev'  // Passe à la branche dev
-                        sh 'git pull origin dev'  // Assure que la branche dev est à jour avec le remote
-                        
-                        // Fusionne dev1 dans dev
-                        sh 'git merge dev1'    
+                    if (currentBranch == 'dev1' || currentBranch == 'dev2') {
+                        echo "Merging ${currentBranch} into dev"
 
-                        // Vérifie si le merge a été effectué correctement
-                        sh 'git status'
-                        sh 'git log --oneline --graph'
+                        // Mettre à jour la branche dev
+                        sh 'git checkout dev'
+                        sh 'git pull origin dev'
 
-                        // Push les changements sur GitHub
+                        // Fusionner la branche courante dans dev
+                        sh "git merge ${currentBranch}"
+
+                        // Pousser les changements
                         sh 'git push origin dev'
                     } else {
                         echo "No merge needed for this branch: ${currentBranch}"
@@ -44,7 +39,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()  // Nettoyer l'espace de travail
+            cleanWs()
         }
         success {
             echo "Merge completed successfully!"
