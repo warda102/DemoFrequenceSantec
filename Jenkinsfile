@@ -2,7 +2,7 @@ pipeline {
     agent any  // Utiliser n'importe quel agent disponible
 
     triggers {
-        // Déclenche la pipeline lorsque des commits sont poussés sur dev1 ou dev2
+        // Déclenche la pipeline lors de push sur dev1 ou dev2
         githubPush()
     }
 
@@ -20,8 +20,8 @@ pipeline {
         stage('Merge to dev') {
             steps {
                 script {
-                    // Récupérer le nom de la branche actuelle
-                    def branchName = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    // Récupérer le nom de la branche actuelle en utilisant `git symbolic-ref`
+                    def branchName = sh(script: 'git symbolic-ref --short HEAD', returnStdout: true).trim()
 
                     // Vérifier si la branche actuelle est dev1 ou dev2
                     if (branchName == 'dev1' || branchName == 'dev2') {
