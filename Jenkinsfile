@@ -1,32 +1,35 @@
 pipeline {
     agent any
     triggers {
-        githubPush()
+        githubPush()  // Le pipeline se déclenche lorsqu'un push est effectué sur GitHub
     }
     stages {
         stage('Checkout') {
             steps {
+                // Vérification de la branche actuelle à partir du dépôt Git
                 checkout scm
+                script {
+                    echo "Current Branch: ${env.BRANCH_NAME}"
+                }
             }
         }
-        stage('Build') {
-            steps {
-                echo 'Building...'
-            }
-        }
-        stage('Merge to dev') {
+        stage('Merge and Push') {
             steps {
                 script {
-                    // Vérifier si on est sur dev1 ou dev2
+                    // Vérification si la branche est dev1 ou dev2
                     if (env.BRANCH_NAME == 'dev1' || env.BRANCH_NAME == 'dev2') {
-                        // Récupérer toutes les branches et se positionner sur dev
+                        echo "Merging ${env.BRANCH_NAME} into dev"
+                        
+                        // Récupérer toutes les branches depuis le dépôt distant
                         sh 'git fetch origin'
+                        
+                        // S'assurer d'être sur la branche dev
                         sh 'git checkout dev'
                         
-                        // Fusionner la branche courante (dev1 ou dev2) dans dev
+                        // Fusionner dev1 ou dev2 dans dev
                         sh "git merge origin/${env.BRANCH_NAME}"
-
-                        // Push vers la branche dev
+                        
+                        // Pousser les modifications sur la branche dev
                         sh 'git push origin dev'
                     } else {
                         echo "Not on dev1 or dev2. Skipping merge to dev."
