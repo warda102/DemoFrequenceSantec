@@ -1,73 +1,56 @@
 pipeline {
-    agent any
-
-    environment {
-        GITHUB_CREDENTIALS = 'GitHub-Token'
-        REPO_URL = 'https://github.com/warda102/DemoFrequenceSantec.git'
-    }
+    agent any  // Utiliser n'importe quel agent disponible
 
     triggers {
+        // Déclenche la pipeline lors de push sur dev1 ou dev2
         githubPush()
     }
 
+    environment {
+        GIT_BRANCH_DEV = 'dev'
+    }
+
     stages {
-        stage('Checkout Source Branch') {
+        stage('Merge to dev') {
             steps {
                 script {
-                    echo "Cloning the source branch (e.g., dev1)..."
-                }
-                checkout([$class: 'GitSCM', 
-                          branches: [[name: '*/dev1']], // Branche source
-                          userRemoteConfigs: [[
-                              url: env.REPO_URL,
-                              credentialsId: env.GITHUB_CREDENTIALS
-                          ]]
-                ])
-            }
-        }
+                    // Utiliser rev-parse pour obtenir la branche courante
+                    def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    echo "Current Branch: ${currentBranch}"
 
-        stage('Merge with Target Branch') {
-            steps {
-                script {
-                    echo "Merging the source branch into dev..."
-                    sh """
-                        git config user.name "jenkins-bot"
-                        git config user.email "jenkins@localhost"
+                    if (currentBranch == 'dev1') {
+                        echo "Merging dev1 into dev"
+                        
+                        // Passe à la branche dev et récupère les dernières modifications
+                        sh 'git checkout dev'  // Passe à la branche dev
+                        sh 'git pull origin dev'  // Assure que la branche dev est à jour avec le remote
+                        
+                        // Fusionne dev1 dans dev
+                        sh 'git merge dev1'    
 
-                        # Récupérer et configurer les branches
-                        git fetch origin dev:dev
-                        git checkout dev
-                        git fetch origin dev1:dev1
+                        // Vérifie si le merge a été effectué correctement
+                        sh 'git status'
+                        sh 'git log --oneline --graph'
 
-                        # Fusionner les branches et gérer les conflits
-                        git merge dev1 --no-edit || true
-                        git checkout --theirs -- Exemple.html || echo 'Conflit non résolu automatiquement'
-                        git checkout --theirs -- Jenkinsfile || echo 'Conflit non résolu automatiquement'
-                        git add Exemple.html Jenkinsfile
-                        git commit -m 'Résolution automatique des conflits'
-                    """
-                }
-            }
-        }
-
-        stage('Push to Target Branch') {
-            steps {
-                script {
-                    echo "Pushing the merged changes to dev..."
-                    sh """
-                        git push origin dev
-                    """
+                        // Push les changements sur GitHub
+                        sh 'git push origin dev'
+                    } else {
+                        echo "No merge needed for this branch: ${currentBranch}"
+                    }
                 }
             }
         }
     }
 
     post {
+        always {
+            cleanWs()  // Nettoyer l'espace de travail
+        }
         success {
-            echo "Merge and push to dev completed successfully!"
+            echo "Merge completed successfully!"
         }
         failure {
-            echo "Pipeline failed. Check the logs for details."
+            echo "Merge failed!"
         }
     }
 }
