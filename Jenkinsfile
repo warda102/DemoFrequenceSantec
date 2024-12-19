@@ -2,9 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // Nom de l'identifiant des credentials configurés dans Jenkins
         GITHUB_CREDENTIALS = 'GitHub-Token' 
-        // URL de votre dépôt GitHub
         REPO_URL = 'https://github.com/warda102/DemoFrequenceSantec.git'
     }
 
@@ -15,7 +13,7 @@ pipeline {
                     echo "Cloning the source branch (e.g., dev1)..."
                 }
                 checkout([$class: 'GitSCM', 
-                          branches: [[name: '*/dev1']], // Branche source (par exemple dev1)
+                          branches: [[name: '*/dev1']], // Branche source
                           userRemoteConfigs: [[
                               url: env.REPO_URL,
                               credentialsId: env.GITHUB_CREDENTIALS
@@ -28,12 +26,16 @@ pipeline {
             steps {
                 script {
                     echo "Merging the source branch into dev..."
-                    // Configure git pour utiliser le jeton d'accès
                     sh """
                         git config user.name "jenkins-bot"
                         git config user.email "jenkins@localhost"
-                        git fetch origin dev
+
+                        # Récupération de la branche cible
+                        git fetch origin dev:dev
                         git checkout dev
+
+                        # Récupération de la branche source
+                        git fetch origin dev1:dev1
                         git merge dev1 --no-edit
                     """
                 }
