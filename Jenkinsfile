@@ -1,7 +1,6 @@
 pipeline {
     agent any
     triggers {
-        // Déclenchement sur les push sur dev1 et dev2
         githubPush()
     }
     stages {
@@ -18,21 +17,30 @@ pipeline {
         stage('Merge to dev') {
             steps {
                 script {
+                    // Vérifier si on est sur dev1 ou dev2
                     if (env.BRANCH_NAME == 'dev1' || env.BRANCH_NAME == 'dev2') {
-                        // Assurez-vous de bien faire un fetch pour toutes les branches
+                        // Récupérer toutes les branches et se positionner sur dev
                         sh 'git fetch origin'
-
-                        // Checkout de la branche dev
                         sh 'git checkout dev'
+                        
+                        // Fusionner la branche courante (dev1 ou dev2) dans dev
+                        sh "git merge origin/${env.BRANCH_NAME}"
 
-                        // Fusion de la branche dev1 ou dev2 dans dev
-                        sh 'git merge origin/' + env.BRANCH_NAME
-
-                        // Push des changements sur dev
+                        // Push vers la branche dev
                         sh 'git push origin dev'
+                    } else {
+                        echo "Not on dev1 or dev2. Skipping merge to dev."
                     }
                 }
             }
+        }
+    }
+    post {
+        success {
+            echo 'Merge completed successfully!'
+        }
+        failure {
+            echo 'Merge failed!'
         }
     }
 }
