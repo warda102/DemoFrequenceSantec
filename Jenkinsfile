@@ -19,8 +19,16 @@ pipeline {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'dev1' || env.BRANCH_NAME == 'dev2') {
+                        // Assurez-vous de bien faire un fetch pour toutes les branches
+                        sh 'git fetch origin'
+
+                        // Checkout de la branche dev
                         sh 'git checkout dev'
-                        sh 'git merge ' + env.BRANCH_NAME
+
+                        // Fusion de la branche dev1 ou dev2 dans dev
+                        sh 'git merge origin/' + env.BRANCH_NAME
+
+                        // Push des changements sur dev
                         sh 'git push origin dev'
                     }
                 }
