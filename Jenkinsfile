@@ -19,16 +19,23 @@ pipeline {
                     // Vérification si la branche est dev1 ou dev2
                     if (env.BRANCH_NAME == 'dev1' || env.BRANCH_NAME == 'dev2') {
                         echo "Merging ${env.BRANCH_NAME} into dev"
-                        
+
+                        // Configurer l'utilisateur Git si nécessaire
+                        sh 'git config user.name "jenkins-bot"'
+                        sh 'git config user.email "jenkins@example.com"'
+
                         // Récupérer toutes les branches depuis le dépôt distant
                         sh 'git fetch origin'
-                        
+
                         // S'assurer d'être sur la branche dev
                         sh 'git checkout dev'
-                        
+
+                        // Mettre à jour la branche dev avec le dépôt distant
+                        sh 'git pull origin dev'
+
                         // Fusionner dev1 ou dev2 dans dev
                         sh "git merge origin/${env.BRANCH_NAME}"
-                        
+
                         // Pousser les modifications sur la branche dev
                         sh 'git push origin dev'
                     } else {
