@@ -20,10 +20,6 @@ pipeline {
                     if (env.BRANCH_NAME == 'dev1' || env.BRANCH_NAME == 'dev2') {
                         echo "Merging ${env.BRANCH_NAME} into dev"
 
-                        // Configurer l'utilisateur Git si nécessaire
-                        sh 'git config user.name "jenkins-bot"'
-                        sh 'git config user.email "jenkins@example.com"'
-
                         // Récupérer toutes les branches depuis le dépôt distant
                         sh 'git fetch origin'
 
