@@ -22,6 +22,7 @@ jobs:
           -Dsonar.projectKey=my-html-project
           -Dsonar.sources=.
           -Dsonar.exclusions=**/*.java
+          -X # Enable detailed logging
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
