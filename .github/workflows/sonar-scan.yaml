@@ -1,28 +1,27 @@
-name: CI/CD workflow for Maven Build and Sonar Code scan
+name: CI/CD workflow for HTML project with SonarQube
+
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+
 jobs:
-  build:
+  code_scan:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Set up JDK 11
-      uses: actions/setup-java@v2
-      with:
-        distribution: 'adopt'
-        java-version: '11'
-    - name: Build with Maven
+
     - name: SonarQube Scan
       uses: sonarsource/sonarqube-scan-action@master
       with:
         projectBaseDir: .
         args: >
           -Dsonar.organization=my-org
-          -Dsonar.projectKey=my-Java-web-app
+          -Dsonar.projectKey=my-html-project
+          -Dsonar.sources=.
+          -Dsonar.exclusions=**/*.java
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
