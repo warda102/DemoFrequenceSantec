@@ -1,4 +1,4 @@
-name: CI/CD workflow for HTML project with SonarQub
+name: CI/CD workflow for HTML project with SonarQube
 
 on:
   push:
